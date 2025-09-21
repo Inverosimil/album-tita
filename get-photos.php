@@ -1,6 +1,8 @@
 <?php
 // Script para obtener la lista de imágenes de la carpeta photos/
 header('Content-Type: application/json');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 $photosDir = 'photos/';
 $photos = [];
@@ -27,6 +29,10 @@ if (is_dir($photosDir)) {
     }
 }
 
+// Orden natural (nombres con números de forma humana)
+natcasesort($photos);
+$photos = array_values($photos);
+
 // Devolver la lista de fotos en formato JSON
-echo json_encode($photos);
+echo json_encode($photos, JSON_UNESCAPED_SLASHES);
 ?>

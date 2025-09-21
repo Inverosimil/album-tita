@@ -5,7 +5,7 @@ class PhotoAlbum {
         this.currentIndex = 0;
         this.isPlaying = true;
         this.intervalId = null;
-        this.intervalTime = 5000; // 5 segundos entre fotos para apreciar mejor las transiciones
+        this.intervalTime = 4000; // 4 segundos entre fotos
         
         this.init();
     }
@@ -44,39 +44,23 @@ class PhotoAlbum {
     async loadPhotosFromDirectory(extensions) {
         try {
             // Intentar obtener la lista de fotos desde el servidor PHP
-            const response = await fetch('get-photos.php');
+            const response = await fetch(`get-photos.php?ts=${Date.now()}` , { cache: 'no-store' });
             if (response.ok) {
                 const photos = await response.json();
-                this.photos = photos;
+                // filtrar por extensiones válidas por seguridad adicional
+                const validExt = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+                this.photos = photos.filter(p => {
+                    const lower = p.toLowerCase();
+                    return validExt.some(ext => lower.endsWith(ext));
+                });
                 return;
             }
         } catch (error) {
             console.log('No se pudo conectar con el servidor PHP, usando método alternativo');
         }
         
-        // Método alternativo: verificar imágenes conocidas
-        const photosToTest = [
-            'photos/WhatsApp Image 2025-09-21 at 01.37.57.jpeg',
-            'photos/WhatsApp Image 2025-09-21 at 01.38.52.jpeg',
-            'photos/WhatsApp Image 2025-09-21 at 01.43.32.jpeg',
-            'photos/WhatsApp Image 2025-09-21 at 01.48.09 (1).jpeg',
-            'photos/WhatsApp Image 2025-09-21 at 01.48.09.jpeg'
-        ];
-        
-        // Verificar qué imágenes existen realmente
-        for (const photoPath of photosToTest) {
-            try {
-                await this.checkImageExists(photoPath);
-                this.photos.push(photoPath);
-            } catch (error) {
-                console.log(`Imagen no encontrada: ${photoPath}`);
-            }
-        }
-        
-        // Si no encontramos fotos específicas, intentar con nombres genéricos
-        if (this.photos.length === 0) {
-            await this.tryGenericImageNames(extensions);
-        }
+        // Método alternativo: sin servidor, no podemos listar directorios.
+        // Dejamos this.photos tal cual para evitar duplicados o suposiciones.
     }
     
     // Verificar si una imagen existe
@@ -125,11 +109,6 @@ class PhotoAlbum {
         
         console.log('Orden aleatorio creado:', this.photoOrder);
         
-        // Generar rotación aleatoria para la primera foto
-        const randomRotation = this.generateRandomRotation();
-        const frame = document.querySelector('.photo-frame');
-        frame.style.transform = `rotate(${randomRotation}deg)`;
-        
         // Mostrar la primera foto del orden aleatorio (índice 0 del orden)
         this.showPhoto(0);
     }
@@ -144,16 +123,24 @@ class PhotoAlbum {
         // Obtener el índice real de la foto en el array photos
         const photoIndex = this.photoOrder[orderIndex];
         
-        // Generar rotación aleatoria para esta foto ANTES de mostrarla
-        const randomRotation = this.generateRandomRotation();
-        
-        // Aplicar rotación aleatoria al marco ANTES del fade out
-        frame.style.transform = `rotate(${randomRotation}deg)`;
-        
         // Efecto de fade out
         photoElement.style.opacity = '0';
         
         setTimeout(() => {
+            // establecer rotación aleatoria ligera entre -2deg y 2deg y compartirla con el marco
+            const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
+            const rotationValue = `${randomRotationDeg}deg`;
+            // aplicar rotación solo al marco mediante variable CSS para sincronizar con el zoom
+            frame.style.setProperty('--rand-rot', rotationValue);
+            // asegurar que la imagen no aporte rotación adicional
+            photoElement.style.transform = 'none';
+
+            // reiniciar animación de zoom sutil en el marco para que acompañe a la foto
+            frame.classList.remove('zooming');
+            // forzar reflow para reiniciar la animación CSS
+            void frame.offsetWidth;
+            frame.classList.add('zooming');
+
             photoElement.src = this.photos[photoIndex];
             photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
@@ -163,15 +150,10 @@ class PhotoAlbum {
             
             setTimeout(() => {
                 frame.classList.remove('fade-in');
-            }, 1200); // Coincide con la duración de la animación fadeIn
-        }, 750); // Tiempo más largo para el fade out
+            }, 500);
+        }, 250);
         
         this.currentIndex = orderIndex;
-    }
-    
-    // Generar rotación aleatoria entre -15 y 15 grados
-    generateRandomRotation() {
-        return (Math.random() - 0.5) * 30; // Entre -15 y 15 grados
     }
     
     // Mostrar siguiente foto siguiendo el orden aleatorio

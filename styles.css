@@ -30,26 +30,31 @@ body {
 
 /* Marco de la foto */
 .photo-frame {
-    border: 2px solid #ddd;
-    padding: 10px 10px 20px 10px; /* Más padding abajo para simular foto instantánea */
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 2px solid #cfcfcf;
+    padding: 10px 10px 28px 10px; /* parte inferior más ancha tipo instantánea */
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
     max-width: 800px;
     width: 100%;
     position: relative;
-    transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Transición más lenta y suave para la rotación */
+    overflow: hidden; /* evitar que la imagen rotada sobresalga */
+    /* textura sutil vintage */
+    background-image:
+        radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));
+    background-size: 3px 3px, auto;
 }
 
-/* Simular el borde inferior más ancho de las fotos instantáneas */
+/* franja y desgaste inferior de foto instantánea */
 .photo-frame::after {
     content: '';
     position: absolute;
-    bottom: 0;
     left: 0;
     right: 0;
-    height: 20px;
-    background: white;
-    border-bottom: 2px solid #ddd;
+    bottom: 0;
+    height: 26px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,245,245,0.95));
+    border-top: 1px solid #e3e3e3;
 }
 
 /* Imagen */
@@ -59,23 +64,33 @@ body {
     max-height: 80vh;
     object-fit: contain;
     display: block;
-    transition: opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Transición más lenta y suave para el fade */
+    transition: opacity 0.5s ease-in-out, transform 2s ease-in-out;
+    will-change: transform, opacity;
 }
 
 /* Animaciones */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: scale(0.98);
     }
     to {
         opacity: 1;
-        transform: scale(1);
     }
 }
 
 .fade-in {
-    animation: fadeIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animación de zoom leve solo hacia adentro */
+@keyframes subtleZoom {
+    0% { transform: rotate(var(--rand-rot, 0deg)) scale(1); }
+    100% { transform: rotate(var(--rand-rot, 0deg)) scale(1.03); }
+}
+
+/* Se aplicará desde JS añadiendo la clase .zooming al marco */
+.zooming {
+    animation: subtleZoom 4s ease-in forwards;
 }
 
 /* Responsive */
