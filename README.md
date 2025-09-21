@@ -5,39 +5,49 @@ Un álbum de fotos interactivo creado con HTML, CSS y JavaScript que muestra las
 ## Características
 
 - **Cambio automático**: Las fotos cambian automáticamente cada 3 segundos
-- **Navegación aleatoria**: Cada foto se selecciona de forma aleatoria
-- **Controles interactivos**: Botones para pausar, siguiente y anterior
-- **Navegación por teclado**: Usa las flechas del teclado para navegar
-- **Diseño responsivo**: Se adapta a diferentes tamaños de pantalla
-- **Efectos visuales**: Transiciones suaves y efectos hover
+- **Orden aleatorio inteligente**: Al cargar se crea un orden aleatorio que evita repeticiones consecutivas
+- **Ciclo completo**: Después de mostrar todas las fotos, se genera un nuevo orden aleatorio
+- **Detección automática**: Identifica automáticamente todas las imágenes en la carpeta `photos/`
+- **Diseño minimalista**: Solo la foto con un marco simple, sin texto ni controles
+- **Fotos completas**: Las imágenes se muestran enteras sin cortar
+- **Efectos visuales**: Transiciones suaves entre fotos
 
 ## Cómo usar
 
-1. Abre `index.html` en tu navegador
-2. Las fotos cambiarán automáticamente cada 3 segundos
-3. Usa los controles para navegar manualmente:
-   - **Pausar/Reproducir**: Detiene o reanuda el slideshow
-   - **Siguiente**: Muestra la siguiente foto aleatoria
-   - **Anterior**: Muestra la foto anterior
+1. **Con servidor (Recomendado)**: Ejecuta `php -S localhost:8000` y abre `http://localhost:8000`
+2. **Sin servidor**: Abre directamente `index.html` en tu navegador
+3. Las fotos cambiarán automáticamente cada 3 segundos siguiendo un orden aleatorio
+4. Haz click en la imagen para avanzar manualmente a la siguiente foto
+5. Al completar un ciclo de todas las fotos, se genera automáticamente un nuevo orden aleatorio
 
-## Controles de teclado
+## Funcionamiento inteligente
 
-- `←` (Flecha izquierda): Foto anterior
-- `→` (Flecha derecha) o `Espacio`: Siguiente foto aleatoria
-- `Escape`: Pausar/reanudar slideshow
+- **Al cargar**: Se identifican todas las fotos en la carpeta `photos/`
+- **Orden aleatorio**: Se crea una secuencia aleatoria que evita repeticiones consecutivas
+- **Ciclo completo**: Muestra todas las fotos una vez antes de repetir
+- **Nuevo orden**: Después de cada ciclo completo, se genera un nuevo orden aleatorio
 
-## Agregar tus propias fotos
+## Fotos incluidas
 
-Para usar tus propias fotos:
+El álbum ya está configurado con las siguientes fotos de WhatsApp:
+- WhatsApp Image 2025-09-21 at 01.37.57.jpeg
+- WhatsApp Image 2025-09-21 at 01.38.52.jpeg  
+- WhatsApp Image 2025-09-21 at 01.43.32.jpeg
+- WhatsApp Image 2025-09-21 at 01.48.09 (1).jpeg
+- WhatsApp Image 2025-09-21 at 01.48.09.jpeg
 
-1. Coloca tus imágenes en la carpeta `photos/`
-2. Edita el archivo `script.js` y reemplaza el array `photos` en el constructor con las rutas de tus imágenes:
+## Agregar más fotos
+
+Para agregar más fotos:
+
+1. Coloca tus nuevas imágenes en la carpeta `photos/`
+2. Edita el archivo `script.js` y agrega las nuevas rutas al array `photos`:
 
 ```javascript
 this.photos = [
-    'photos/tu-foto-1.jpg',
-    'photos/tu-foto-2.jpg',
-    'photos/tu-foto-3.jpg',
+    'photos/WhatsApp Image 2025-09-21 at 01.37.57.jpeg',
+    'photos/WhatsApp Image 2025-09-21 at 01.38.52.jpeg',
+    'photos/tu-nueva-foto.jpg',
     // ... más fotos
 ];
 ```
@@ -61,6 +71,7 @@ album-tita/
 
 ## Notas técnicas
 
-- El álbum usa fotos de ejemplo de Picsum para demostración
+- El álbum usa únicamente las imágenes locales de la carpeta `photos/`
 - Para usar fotos locales, necesitarás un servidor web local
 - Compatible con todos los navegadores modernos
+- Total de fotos incluidas: 5 imágenes de WhatsApp

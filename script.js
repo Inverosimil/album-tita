@@ -1,6 +1,7 @@
 class PhotoAlbum {
     constructor() {
         this.photos = [];
+        this.photoOrder = []; // Orden aleatorio de las fotos
         this.currentIndex = 0;
         this.isPlaying = true;
         this.intervalId = null;
@@ -9,8 +10,9 @@ class PhotoAlbum {
         this.init();
     }
     
-    init() {
-        this.loadPhotos();
+    async init() {
+        await this.loadPhotos();
+        this.createRandomOrder();
         this.setupEventListeners();
         this.startSlideshow();
     }
@@ -18,24 +20,17 @@ class PhotoAlbum {
     // Cargar todas las fotos de la carpeta /photos
     async loadPhotos() {
         try {
-            // En un entorno real, necesitarías un servidor para listar archivos
-            // Por ahora, usaremos fotos de ejemplo con URLs de placeholder
-            this.photos = [
-                'https://picsum.photos/800/500?random=1',
-                'https://picsum.photos/800/500?random=2',
-                'https://picsum.photos/800/500?random=3',
-                'https://picsum.photos/800/500?random=4',
-                'https://picsum.photos/800/500?random=5',
-                'https://picsum.photos/800/500?random=6',
-                'https://picsum.photos/800/500?random=7',
-                'https://picsum.photos/800/500?random=8',
-                'https://picsum.photos/800/500?random=9',
-                'https://picsum.photos/800/500?random=10'
-            ];
+            // Lista de extensiones de imagen soportadas
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+            
+            // Array para almacenar las fotos encontradas
+            this.photos = [];
+            
+            // Intentar cargar las fotos usando diferentes métodos
+            await this.loadPhotosFromDirectory(imageExtensions);
             
             if (this.photos.length > 0) {
-                this.showPhoto(0);
-                this.updateCounter();
+                console.log(`Se encontraron ${this.photos.length} fotos:`, this.photos);
             } else {
                 this.showNoPhotosMessage();
             }
@@ -45,19 +40,111 @@ class PhotoAlbum {
         }
     }
     
-    // Mostrar una foto específica
-    showPhoto(index) {
+    // Método para cargar fotos desde el directorio
+    async loadPhotosFromDirectory(extensions) {
+        try {
+            // Intentar obtener la lista de fotos desde el servidor PHP
+            const response = await fetch('get-photos.php');
+            if (response.ok) {
+                const photos = await response.json();
+                this.photos = photos;
+                return;
+            }
+        } catch (error) {
+            console.log('No se pudo conectar con el servidor PHP, usando método alternativo');
+        }
+        
+        // Método alternativo: verificar imágenes conocidas
+        const photosToTest = [
+            'photos/WhatsApp Image 2025-09-21 at 01.37.57.jpeg',
+            'photos/WhatsApp Image 2025-09-21 at 01.38.52.jpeg',
+            'photos/WhatsApp Image 2025-09-21 at 01.43.32.jpeg',
+            'photos/WhatsApp Image 2025-09-21 at 01.48.09 (1).jpeg',
+            'photos/WhatsApp Image 2025-09-21 at 01.48.09.jpeg'
+        ];
+        
+        // Verificar qué imágenes existen realmente
+        for (const photoPath of photosToTest) {
+            try {
+                await this.checkImageExists(photoPath);
+                this.photos.push(photoPath);
+            } catch (error) {
+                console.log(`Imagen no encontrada: ${photoPath}`);
+            }
+        }
+        
+        // Si no encontramos fotos específicas, intentar con nombres genéricos
+        if (this.photos.length === 0) {
+            await this.tryGenericImageNames(extensions);
+        }
+    }
+    
+    // Verificar si una imagen existe
+    checkImageExists(imagePath) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(imagePath);
+            img.onerror = () => reject(new Error('Image not found'));
+            img.src = imagePath;
+        });
+    }
+    
+    // Intentar nombres genéricos de imágenes
+    async tryGenericImageNames(extensions) {
+        const genericNames = [
+            'photo1', 'photo2', 'photo3', 'photo4', 'photo5',
+            'image1', 'image2', 'image3', 'image4', 'image5',
+            'img1', 'img2', 'img3', 'img4', 'img5'
+        ];
+        
+        for (const name of genericNames) {
+            for (const ext of extensions) {
+                const photoPath = `photos/${name}${ext}`;
+                try {
+                    await this.checkImageExists(photoPath);
+                    this.photos.push(photoPath);
+                } catch (error) {
+                    // Continuar con el siguiente
+                }
+            }
+        }
+    }
+    
+    // Crear orden aleatorio de las fotos
+    createRandomOrder() {
+        if (this.photos.length === 0) return;
+        
+        // Crear array con índices de 0 a photos.length-1
+        this.photoOrder = Array.from({length: this.photos.length}, (_, i) => i);
+        
+        // Mezclar el array usando algoritmo Fisher-Yates
+        for (let i = this.photoOrder.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.photoOrder[i], this.photoOrder[j]] = [this.photoOrder[j], this.photoOrder[i]];
+        }
+        
+        console.log('Orden aleatorio creado:', this.photoOrder);
+        
+        // Mostrar la primera foto del orden aleatorio (índice 0 del orden)
+        this.showPhoto(0);
+    }
+    
+    // Mostrar una foto específica por índice del orden aleatorio
+    showPhoto(orderIndex) {
         if (this.photos.length === 0) return;
         
         const photoElement = document.getElementById('current-photo');
         const frame = photoElement.parentElement;
         
+        // Obtener el índice real de la foto en el array photos
+        const photoIndex = this.photoOrder[orderIndex];
+        
         // Efecto de fade out
         photoElement.style.opacity = '0';
         
         setTimeout(() => {
-            photoElement.src = this.photos[index];
-            photoElement.alt = `Foto ${index + 1} del álbum`;
+            photoElement.src = this.photos[photoIndex];
+            photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
             // Efecto de fade in
             photoElement.style.opacity = '1';
@@ -68,43 +155,34 @@ class PhotoAlbum {
             }, 500);
         }, 250);
         
-        this.currentIndex = index;
-        this.updateCounter();
+        this.currentIndex = orderIndex;
     }
     
-    // Mostrar siguiente foto de forma aleatoria
+    // Mostrar siguiente foto siguiendo el orden aleatorio
     nextRandomPhoto() {
         if (this.photos.length <= 1) return;
         
-        let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * this.photos.length);
-        } while (newIndex === this.currentIndex && this.photos.length > 1);
+        // Avanzar al siguiente índice en el orden aleatorio
+        const nextIndex = (this.currentIndex + 1) % this.photoOrder.length;
         
-        this.showPhoto(newIndex);
-    }
-    
-    // Mostrar foto anterior
-    prevPhoto() {
-        if (this.photos.length === 0) return;
+        // Si volvemos al inicio, regenerar el orden aleatorio
+        if (nextIndex === 0) {
+            this.createRandomOrder();
+            return;
+        }
         
-        const prevIndex = this.currentIndex > 0 ? this.currentIndex - 1 : this.photos.length - 1;
-        this.showPhoto(prevIndex);
-    }
-    
-    // Mostrar siguiente foto en orden
-    nextPhoto() {
-        if (this.photos.length === 0) return;
-        
-        const nextIndex = this.currentIndex < this.photos.length - 1 ? this.currentIndex + 1 : 0;
         this.showPhoto(nextIndex);
     }
     
-    // Actualizar contador de fotos
-    updateCounter() {
-        const counterElement = document.getElementById('photo-counter');
-        counterElement.textContent = `${this.currentIndex + 1} / ${this.photos.length}`;
+    // Mostrar foto anterior siguiendo el orden aleatorio
+    prevPhoto() {
+        if (this.photos.length === 0) return;
+        
+        const prevIndex = this.currentIndex > 0 ? this.currentIndex - 1 : this.photoOrder.length - 1;
+        this.showPhoto(prevIndex);
     }
+    
+    
     
     // Iniciar slideshow automático
     startSlideshow() {
@@ -119,54 +197,9 @@ class PhotoAlbum {
         }, this.intervalTime);
     }
     
-    // Pausar/reanudar slideshow
-    togglePlayPause() {
-        this.isPlaying = !this.isPlaying;
-        const pauseBtn = document.getElementById('pause-btn');
-        
-        if (this.isPlaying) {
-            pauseBtn.textContent = '⏸️ Pausar';
-            pauseBtn.style.background = 'rgba(255,255,255,0.2)';
-        } else {
-            pauseBtn.textContent = '▶️ Reproducir';
-            pauseBtn.style.background = 'rgba(255,255,255,0.4)';
-        }
-    }
     
     // Configurar event listeners
     setupEventListeners() {
-        // Botón de pausa/reproducción
-        document.getElementById('pause-btn').addEventListener('click', () => {
-            this.togglePlayPause();
-        });
-        
-        // Botón siguiente
-        document.getElementById('next-btn').addEventListener('click', () => {
-            this.nextRandomPhoto();
-        });
-        
-        // Botón anterior
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            this.prevPhoto();
-        });
-        
-        // Navegación con teclado
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowLeft':
-                    this.prevPhoto();
-                    break;
-                case 'ArrowRight':
-                case ' ':
-                    e.preventDefault();
-                    this.nextRandomPhoto();
-                    break;
-                case 'Escape':
-                    this.togglePlayPause();
-                    break;
-            }
-        });
-        
         // Click en la imagen para siguiente foto
         document.getElementById('current-photo').addEventListener('click', () => {
             this.nextRandomPhoto();
@@ -178,9 +211,6 @@ class PhotoAlbum {
         const photoElement = document.getElementById('current-photo');
         photoElement.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIGhheSBmb3RvcyBkaXNwb25pYmxlczwvdGV4dD48L3N2Zz4=';
         photoElement.alt = 'No hay fotos disponibles';
-        
-        const counterElement = document.getElementById('photo-counter');
-        counterElement.textContent = '0 / 0';
     }
 }
 
@@ -189,9 +219,4 @@ document.addEventListener('DOMContentLoaded', () => {
     new PhotoAlbum();
 });
 
-// Función para agregar fotos locales (para uso futuro)
-function addLocalPhotos(photoPaths) {
-    // Esta función se puede usar cuando tengas fotos locales
-    // photoPaths debería ser un array de rutas a las imágenes
-    console.log('Para usar fotos locales, reemplaza las URLs en el array photos del constructor');
-}
+// El álbum ahora usa únicamente las imágenes locales de la carpeta photos/
