@@ -34,16 +34,22 @@ body {
     padding: 10px 10px 28px 10px; /* parte inferior más ancha tipo instantánea */
     background: #fff;
     box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-    max-width: 800px;
+    max-width: min(800px, 90vw);
+    max-height: 85vh;
     width: auto;
-    max-width: 90vw;
-    position: relative;
+    height: auto;
+    position: absolute;
     overflow: hidden; /* evitar que la imagen rotada sobresalga */
     /* textura sutil vintage */
     background-image:
         radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
         linear-gradient(0deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));
     background-size: 3px 3px, auto;
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+#frame-2 {
+    opacity: 0;
 }
 
 /* franja y desgaste inferior de foto instantánea */
@@ -59,16 +65,20 @@ body {
 }
 
 /* Imagen */
-#current-photo {
+#current-photo, #next-photo {
     max-width: 100%;
+    width: auto;
     height: auto;
-    max-height: 80vh;
+    max-height: calc(85vh - 60px); /* Restar padding y borde del marco */
     object-fit: contain;
     display: block;
     margin: 0 auto;
-    transition: opacity 0.5s ease-in-out, transform 2s ease-in-out;
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 2s ease-in-out;
     will-change: transform, opacity;
+    position: relative;
+    z-index: 0;
 }
+
 
 /* Animaciones */
 @keyframes fadeIn {
@@ -84,15 +94,15 @@ body {
     animation: fadeIn 0.5s ease-in-out;
 }
 
-/* Animación de zoom leve solo hacia adentro */
+/* Animación de zoom leve con rotación progresiva */
 @keyframes subtleZoom {
     0% { transform: rotate(var(--rand-rot, 0deg)) scale(1); }
-    100% { transform: rotate(var(--rand-rot, 0deg)) scale(1.03); }
+    100% { transform: rotate(calc(var(--rand-rot, 0deg) + var(--rot-direction, 1deg))) scale(1.03); }
 }
 
 /* Se aplicará desde JS añadiendo la clase .zooming al marco */
 .zooming {
-    animation: subtleZoom 4s ease-in forwards;
+    animation: subtleZoom 5s ease-in forwards;
 }
 
 /* Responsive */
@@ -102,7 +112,13 @@ body {
     }
     
     .photo-frame {
-        padding: 8px;
+        padding: 8px 8px 20px 8px;
+        max-width: min(600px, 95vw);
+        max-height: 80vh;
+    }
+    
+    #current-photo, #next-photo {
+        max-height: calc(80vh - 50px);
     }
 }
 
@@ -112,6 +128,12 @@ body {
     }
     
     .photo-frame {
-        padding: 5px;
+        padding: 5px 5px 15px 5px;
+        max-width: min(400px, 98vw);
+        max-height: 75vh;
+    }
+    
+    #current-photo, #next-photo {
+        max-height: calc(75vh - 40px);
     }
 }

@@ -5,7 +5,8 @@ class PhotoAlbum {
         this.currentIndex = 0;
         this.isPlaying = true;
         this.intervalId = null;
-        this.intervalTime = 4000; // 4 segundos entre fotos
+        this.intervalTime = 5000; // 5 segundos entre fotos
+        this.useOverlay = false; // Alternar entre imagen principal y overlay
         
         this.init();
     }
@@ -111,41 +112,72 @@ class PhotoAlbum {
         if (this.photos.length === 0) return;
         
         const photoElement = document.getElementById('current-photo');
-        const frame = photoElement.parentElement;
+        const nextElement = document.getElementById('next-photo');
+        const frame1 = document.getElementById('frame-1');
+        const frame2 = document.getElementById('frame-2');
         
         // Obtener el índice real de la foto en el array photos
         const photoIndex = this.photoOrder[orderIndex];
         
-        // Efecto de fade out
-        photoElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            // establecer rotación aleatoria ligera entre -2deg y 2deg y compartirla con el marco
-            const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
-            const rotationValue = `${randomRotationDeg}deg`;
-            // aplicar rotación solo al marco mediante variable CSS para sincronizar con el zoom
-            frame.style.setProperty('--rand-rot', rotationValue);
-            // asegurar que la imagen no aporte rotación adicional
-            photoElement.style.transform = 'none';
-
-            // reiniciar animación de zoom sutil en el marco para que acompañe a la foto
-            frame.classList.remove('zooming');
-            // forzar reflow para reiniciar la animación CSS
-            void frame.offsetWidth;
-            frame.classList.add('zooming');
-
+        // Si es la primera foto, mostrarla directamente
+        if (!photoElement.src || photoElement.src.includes('data:image')) {
             photoElement.src = this.photos[photoIndex];
             photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
-            // Efecto de fade in
-            photoElement.style.opacity = '1';
-            frame.classList.add('fade-in');
+            // Configurar marco 1
+            const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
+            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            frame1.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
+            frame1.style.setProperty('--rot-direction', `${rotDirection}deg`);
+            frame1.classList.add('zooming');
+            frame1.style.opacity = '1';
+            frame2.style.opacity = '0';
             
-            setTimeout(() => {
-                frame.classList.remove('fade-in');
-            }, 500);
-        }, 250);
+            this.currentIndex = orderIndex;
+            return;
+        }
+
+        // Alternar entre los dos marcos independientes
+        if (this.useOverlay) {
+            // Mostrar en frame-2, ocultar frame-1
+            nextElement.src = this.photos[photoIndex];
+            nextElement.alt = `Foto ${orderIndex + 1} del álbum`;
+            
+            // Configurar rotación y zoom para frame-2
+            const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
+            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            frame2.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
+            frame2.style.setProperty('--rot-direction', `${rotDirection}deg`);
+            frame2.classList.remove('zooming');
+            void frame2.offsetWidth;
+            frame2.classList.add('zooming');
+            
+            requestAnimationFrame(() => {
+                frame1.style.opacity = '0';
+                frame2.style.opacity = '1';
+            });
+        } else {
+            // Mostrar en frame-1, ocultar frame-2
+            photoElement.src = this.photos[photoIndex];
+            photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
+            
+            // Configurar rotación y zoom para frame-1
+            const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
+            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            frame1.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
+            frame1.style.setProperty('--rot-direction', `${rotDirection}deg`);
+            frame1.classList.remove('zooming');
+            void frame1.offsetWidth;
+            frame1.classList.add('zooming');
+            
+            requestAnimationFrame(() => {
+                frame2.style.opacity = '0';
+                frame1.style.opacity = '1';
+            });
+        }
         
+        // Alternar para la próxima vez
+        this.useOverlay = !this.useOverlay;
         this.currentIndex = orderIndex;
     }
     
