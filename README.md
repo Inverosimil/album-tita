@@ -7,22 +7,22 @@ Un álbum de fotos interactivo creado con HTML, CSS y JavaScript que muestra las
 - **Cambio automático**: Las fotos cambian automáticamente cada 3 segundos
 - **Orden aleatorio fijo**: Al cargar se crea un orden aleatorio que evita repeticiones consecutivas
 - **Repetición infinita**: El mismo orden aleatorio se repite infinitamente
-- **Detección automática**: Identifica automáticamente todas las imágenes en la carpeta `photos/`
+- **Detección por manifiesto**: Las imágenes se leen desde `photos/list.json`
 - **Diseño minimalista**: Solo la foto con un marco simple, sin texto ni controles
 - **Fotos completas**: Las imágenes se muestran enteras sin cortar
 - **Efectos visuales**: Transiciones suaves entre fotos
 
 ## Cómo usar
 
-1. **Con servidor (Recomendado)**: Ejecuta `php -S localhost:8000` y abre `http://localhost:8000`
-2. **Sin servidor**: Abre directamente `index.html` en tu navegador
+1. Abre `index.html` con Live Server o cualquier servidor estático
+2. Las fotos se cargan desde `photos/list.json`
 3. Las fotos cambiarán automáticamente cada 3 segundos siguiendo un orden aleatorio fijo
 4. Haz click en la imagen para avanzar manualmente a la siguiente foto
 5. Al completar un ciclo de todas las fotos, se repite el mismo orden aleatorio infinitamente
 
 ## Funcionamiento inteligente
 
-- **Al cargar**: Se identifican todas las fotos en la carpeta `photos/`
+- **Al cargar**: Se leen todas las fotos desde `photos/list.json`
 - **Orden aleatorio fijo**: Se crea una secuencia aleatoria que evita repeticiones consecutivas
 - **Ciclo completo**: Muestra todas las fotos una vez antes de repetir
 - **Repetición infinita**: El mismo orden aleatorio se repite para siempre

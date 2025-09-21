@@ -1,35 +1,31 @@
 # Cómo ejecutar el álbum de fotos
 
-## Opción 1: Servidor PHP (Recomendado)
+## Servir los archivos (Live Server o estático)
 
-Para que el álbum detecte automáticamente todas las imágenes en la carpeta `photos/`, necesitas ejecutar un servidor web local.
+El álbum usa un manifiesto estático `photos/list.json` para cargar todas las fotos, por lo que no necesitas PHP.
 
-### Con PHP (si tienes PHP instalado):
-```bash
-php -S localhost:8000
-```
+Opciones:
 
-### Con Python (si tienes Python instalado):
+- VS Code Live Server
+- Python
 ```bash
 python -m http.server 8000
 ```
-
-### Con Node.js (si tienes Node.js instalado):
+- Node.js
 ```bash
 npx http-server -p 8000
 ```
 
 Luego abre tu navegador en: `http://localhost:8000`
 
-## Opción 2: Sin servidor (Limitado)
-
-Si abres directamente `index.html` en el navegador, el álbum funcionará pero solo detectará las imágenes que estén hardcodeadas en el código.
-
 ## Agregar nuevas fotos
 
 1. Coloca tus nuevas imágenes en la carpeta `photos/`
-2. Si usas un servidor web, las nuevas fotos se detectarán automáticamente
-3. Si no usas servidor, edita `script.js` y agrega las nuevas rutas al array
+2. Ejecuta el comando para regenerar `photos/list.json` (macOS/Linux):
+```bash
+ls -1 photos | grep -Ei '\\.(jpe?g|png|gif|webp|bmp)$' | sed 's#^#photos/#' > photos/list.txt && jq -R -s -c 'split("\\n")|map(select(length>0))' photos/list.txt > photos/list.json && rm photos/list.txt
+```
+En Windows, puedes generar el JSON con cualquier herramienta o manualmente.
 
 ## Formatos soportados
 

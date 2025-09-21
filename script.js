@@ -42,25 +42,18 @@ class PhotoAlbum {
     
     // Método para cargar fotos desde el directorio
     async loadPhotosFromDirectory(extensions) {
+        // Usar manifiesto estático en photos/list.json
         try {
-            // Intentar obtener la lista de fotos desde el servidor PHP
-            const response = await fetch(`get-photos.php?ts=${Date.now()}` , { cache: 'no-store' });
-            if (response.ok) {
-                const photos = await response.json();
-                // filtrar por extensiones válidas por seguridad adicional
-                const validExt = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
-                this.photos = photos.filter(p => {
-                    const lower = p.toLowerCase();
-                    return validExt.some(ext => lower.endsWith(ext));
-                });
-                return;
+            const res = await fetch(`photos/list.json?ts=${Date.now()}`, { cache: 'no-store' });
+            if (res.ok) {
+                const photos = await res.json();
+                if (Array.isArray(photos)) {
+                    this.photos = photos;
+                }
             }
-        } catch (error) {
-            console.log('No se pudo conectar con el servidor PHP, usando método alternativo');
+        } catch (err) {
+            console.log('No se encontró photos/list.json');
         }
-        
-        // Método alternativo: sin servidor, no podemos listar directorios.
-        // Dejamos this.photos tal cual para evitar duplicados o suposiciones.
     }
     
     // Verificar si una imagen existe
