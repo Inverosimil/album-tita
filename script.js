@@ -7,6 +7,7 @@ class PhotoAlbum {
         this.intervalId = null;
         this.intervalTime = 5000; // 5 segundos entre fotos
         this.useOverlay = false; // Alternar entre imagen principal y overlay
+        this.preloadedImages = new Map(); // Cache de imágenes precargadas
         
         this.init();
     }
@@ -103,12 +104,35 @@ class PhotoAlbum {
         
         console.log('Orden aleatorio creado:', this.photoOrder);
         
+        // Precargar todas las imágenes
+        this.preloadAllImages();
+        
         // Mostrar la primera foto del orden aleatorio (índice 0 del orden)
         this.showPhoto(0);
     }
     
+    // Precargar todas las imágenes para evitar problemas en producción
+    preloadAllImages() {
+        this.photos.forEach((photoPath, index) => {
+            const img = new Image();
+            img.onload = () => {
+                this.preloadedImages.set(photoPath, img);
+                console.log(`Precargada: ${photoPath}`);
+            };
+            img.onerror = () => {
+                console.error(`Error cargando: ${photoPath}`);
+            };
+            img.src = photoPath;
+        });
+    }
+    
+    // Verificar si una imagen está precargada
+    isImagePreloaded(photoPath) {
+        return this.preloadedImages.has(photoPath);
+    }
+    
     // Mostrar una foto específica por índice del orden aleatorio
-    showPhoto(orderIndex) {
+    async showPhoto(orderIndex) {
         if (this.photos.length === 0) return;
         
         const photoElement = document.getElementById('current-photo');
@@ -118,15 +142,22 @@ class PhotoAlbum {
         
         // Obtener el índice real de la foto en el array photos
         const photoIndex = this.photoOrder[orderIndex];
+        const photoPath = this.photos[photoIndex];
+        
+        // Esperar a que la imagen esté precargada si es necesario
+        if (!this.isImagePreloaded(photoPath)) {
+            console.log(`Esperando carga de: ${photoPath}`);
+            await this.waitForImageLoad(photoPath);
+        }
         
         // Si es la primera foto, mostrarla directamente
         if (!photoElement.src || photoElement.src.includes('data:image')) {
-            photoElement.src = this.photos[photoIndex];
+            photoElement.src = photoPath;
             photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
             // Configurar marco 1
             const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
-            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            const rotDirection = Math.random() < 0.5 ? -1 : 1;
             frame1.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
             frame1.style.setProperty('--rot-direction', `${rotDirection}deg`);
             frame1.classList.add('zooming');
@@ -140,12 +171,12 @@ class PhotoAlbum {
         // Alternar entre los dos marcos independientes
         if (this.useOverlay) {
             // Mostrar en frame-2, ocultar frame-1
-            nextElement.src = this.photos[photoIndex];
+            nextElement.src = photoPath;
             nextElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
             // Configurar rotación y zoom para frame-2
             const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
-            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            const rotDirection = Math.random() < 0.5 ? -1 : 1;
             frame2.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
             frame2.style.setProperty('--rot-direction', `${rotDirection}deg`);
             frame2.classList.remove('zooming');
@@ -158,12 +189,12 @@ class PhotoAlbum {
             });
         } else {
             // Mostrar en frame-1, ocultar frame-2
-            photoElement.src = this.photos[photoIndex];
+            photoElement.src = photoPath;
             photoElement.alt = `Foto ${orderIndex + 1} del álbum`;
             
             // Configurar rotación y zoom para frame-1
             const randomRotationDeg = (Math.random() * 4 - 2).toFixed(2);
-            const rotDirection = Math.random() < 0.5 ? -1 : 1; // Aleatoriamente -1deg o +1deg
+            const rotDirection = Math.random() < 0.5 ? -1 : 1;
             frame1.style.setProperty('--rand-rot', `${randomRotationDeg}deg`);
             frame1.style.setProperty('--rot-direction', `${rotDirection}deg`);
             frame1.classList.remove('zooming');
@@ -181,13 +212,34 @@ class PhotoAlbum {
         this.currentIndex = orderIndex;
     }
     
+    // Esperar a que una imagen se cargue
+    waitForImageLoad(photoPath) {
+        return new Promise((resolve, reject) => {
+            if (this.isImagePreloaded(photoPath)) {
+                resolve();
+                return;
+            }
+            
+            const img = new Image();
+            img.onload = () => {
+                this.preloadedImages.set(photoPath, img);
+                resolve();
+            };
+            img.onerror = () => {
+                console.error(`Error cargando imagen: ${photoPath}`);
+                reject(new Error(`Failed to load ${photoPath}`));
+            };
+            img.src = photoPath;
+        });
+    }
+    
     // Mostrar siguiente foto siguiendo el orden aleatorio
-    nextRandomPhoto() {
+    async nextRandomPhoto() {
         if (this.photos.length <= 1) return;
         
         // Avanzar al siguiente índice en el orden aleatorio
         const nextIndex = (this.currentIndex + 1) % this.photoOrder.length;
-        this.showPhoto(nextIndex);
+        await this.showPhoto(nextIndex);
     }
     
     // Mostrar foto anterior siguiendo el orden aleatorio
@@ -206,9 +258,9 @@ class PhotoAlbum {
             clearInterval(this.intervalId);
         }
         
-        this.intervalId = setInterval(() => {
+        this.intervalId = setInterval(async () => {
             if (this.isPlaying) {
-                this.nextRandomPhoto();
+                await this.nextRandomPhoto();
             }
         }, this.intervalTime);
     }
