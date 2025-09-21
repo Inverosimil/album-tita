@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álbum de Fotos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mi Álbum de Fotos</h1>
+            <p>Las fotos cambian automáticamente de forma aleatoria</p>
+        </header>
+        
+        <main class="album-container">
+            <div class="photo-frame">
+                <img id="current-photo" src="" alt="Foto del álbum" />
+                <div class="photo-info">
+                    <span id="photo-counter">1 / 1</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="pause-btn" class="control-btn">⏸️ Pausar</button>
+                <button id="next-btn" class="control-btn">⏭️ Siguiente</button>
+                <button id="prev-btn" class="control-btn">⏮️ Anterior</button>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Álbum creado con HTML, CSS y JavaScript</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
