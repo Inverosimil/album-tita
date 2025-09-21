@@ -5,7 +5,7 @@ class PhotoAlbum {
         this.currentIndex = 0;
         this.isPlaying = true;
         this.intervalId = null;
-        this.intervalTime = 3000; // 3 segundos entre fotos
+        this.intervalTime = 5000; // 5 segundos entre fotos para apreciar mejor las transiciones
         
         this.init();
     }
@@ -125,6 +125,11 @@ class PhotoAlbum {
         
         console.log('Orden aleatorio creado:', this.photoOrder);
         
+        // Generar rotación aleatoria para la primera foto
+        const randomRotation = this.generateRandomRotation();
+        const frame = document.querySelector('.photo-frame');
+        frame.style.transform = `rotate(${randomRotation}deg)`;
+        
         // Mostrar la primera foto del orden aleatorio (índice 0 del orden)
         this.showPhoto(0);
     }
@@ -139,6 +144,12 @@ class PhotoAlbum {
         // Obtener el índice real de la foto en el array photos
         const photoIndex = this.photoOrder[orderIndex];
         
+        // Generar rotación aleatoria para esta foto ANTES de mostrarla
+        const randomRotation = this.generateRandomRotation();
+        
+        // Aplicar rotación aleatoria al marco ANTES del fade out
+        frame.style.transform = `rotate(${randomRotation}deg)`;
+        
         // Efecto de fade out
         photoElement.style.opacity = '0';
         
@@ -152,10 +163,15 @@ class PhotoAlbum {
             
             setTimeout(() => {
                 frame.classList.remove('fade-in');
-            }, 500);
-        }, 250);
+            }, 1200); // Coincide con la duración de la animación fadeIn
+        }, 750); // Tiempo más largo para el fade out
         
         this.currentIndex = orderIndex;
+    }
+    
+    // Generar rotación aleatoria entre -15 y 15 grados
+    generateRandomRotation() {
+        return (Math.random() - 0.5) * 30; // Entre -15 y 15 grados
     }
     
     // Mostrar siguiente foto siguiendo el orden aleatorio
@@ -164,13 +180,6 @@ class PhotoAlbum {
         
         // Avanzar al siguiente índice en el orden aleatorio
         const nextIndex = (this.currentIndex + 1) % this.photoOrder.length;
-        
-        // Si volvemos al inicio, regenerar el orden aleatorio
-        if (nextIndex === 0) {
-            this.createRandomOrder();
-            return;
-        }
-        
         this.showPhoto(nextIndex);
     }
     

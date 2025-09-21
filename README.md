@@ -5,8 +5,8 @@ Un álbum de fotos interactivo creado con HTML, CSS y JavaScript que muestra las
 ## Características
 
 - **Cambio automático**: Las fotos cambian automáticamente cada 3 segundos
-- **Orden aleatorio inteligente**: Al cargar se crea un orden aleatorio que evita repeticiones consecutivas
-- **Ciclo completo**: Después de mostrar todas las fotos, se genera un nuevo orden aleatorio
+- **Orden aleatorio fijo**: Al cargar se crea un orden aleatorio que evita repeticiones consecutivas
+- **Repetición infinita**: El mismo orden aleatorio se repite infinitamente
 - **Detección automática**: Identifica automáticamente todas las imágenes en la carpeta `photos/`
 - **Diseño minimalista**: Solo la foto con un marco simple, sin texto ni controles
 - **Fotos completas**: Las imágenes se muestran enteras sin cortar
@@ -16,16 +16,16 @@ Un álbum de fotos interactivo creado con HTML, CSS y JavaScript que muestra las
 
 1. **Con servidor (Recomendado)**: Ejecuta `php -S localhost:8000` y abre `http://localhost:8000`
 2. **Sin servidor**: Abre directamente `index.html` en tu navegador
-3. Las fotos cambiarán automáticamente cada 3 segundos siguiendo un orden aleatorio
+3. Las fotos cambiarán automáticamente cada 3 segundos siguiendo un orden aleatorio fijo
 4. Haz click en la imagen para avanzar manualmente a la siguiente foto
-5. Al completar un ciclo de todas las fotos, se genera automáticamente un nuevo orden aleatorio
+5. Al completar un ciclo de todas las fotos, se repite el mismo orden aleatorio infinitamente
 
 ## Funcionamiento inteligente
 
 - **Al cargar**: Se identifican todas las fotos en la carpeta `photos/`
-- **Orden aleatorio**: Se crea una secuencia aleatoria que evita repeticiones consecutivas
+- **Orden aleatorio fijo**: Se crea una secuencia aleatoria que evita repeticiones consecutivas
 - **Ciclo completo**: Muestra todas las fotos una vez antes de repetir
-- **Nuevo orden**: Después de cada ciclo completo, se genera un nuevo orden aleatorio
+- **Repetición infinita**: El mismo orden aleatorio se repite para siempre
 
 ## Fotos incluidas
 
